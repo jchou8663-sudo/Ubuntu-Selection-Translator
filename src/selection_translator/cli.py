@@ -30,6 +30,10 @@ def _doctor() -> int:
         cfg = load_config()
         checks["provider"] = cfg.provider
         checks["provider_endpoint"] = cfg.endpoint if cfg.provider == "libretranslate" else "local command: trans"
+        if cfg.provider == "deepseek":
+            checks["provider_endpoint"] = cfg.endpoint
+            checks["provider_model"] = cfg.model
+            checks["api_key_configured"] = bool(os.environ.get("DEEPSEEK_API_KEY") or cfg.api_key)
         checks["config_valid"] = True
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         checks["config_valid"] = False

@@ -1,9 +1,9 @@
 {
-  "provider": "libretranslate",
-  "endpoint": "https://libretranslate.com",
+  "provider": "deepseek",
+  "endpoint": "https://api.deepseek.com",
   "api_key": "",
+  "model": "deepseek-v4-flash",
   "timeout_seconds": 12,
   "copy_translation": true,
   "max_chars": 5000
 }
-

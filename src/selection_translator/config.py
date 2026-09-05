@@ -9,9 +9,10 @@ from typing import Any
 
 @dataclass(frozen=True)
 class Config:
-    provider: str = "libretranslate"
-    endpoint: str = "https://libretranslate.com"
+    provider: str = "deepseek"
+    endpoint: str = "https://api.deepseek.com"
     api_key: str = ""
+    model: str = "deepseek-v4-flash"
     timeout_seconds: float = 12.0
     copy_translation: bool = True
     max_chars: int = 5000
@@ -35,9 +36,10 @@ def load_config(path: Path | None = None) -> Config:
     if unknown:
         raise ValueError(f"未知配置项：{', '.join(sorted(unknown))}")
     cfg = Config(**data)
-    if cfg.provider not in {"libretranslate", "translate-shell"}:
+    if cfg.provider not in {"deepseek", "libretranslate", "translate-shell"}:
         raise ValueError(f"不支持的 provider：{cfg.provider}")
+    if cfg.provider == "deepseek" and not cfg.model.strip():
+        raise ValueError("DeepSeek model 不能为空")
     if cfg.timeout_seconds <= 0 or cfg.max_chars <= 0:
         raise ValueError("timeout_seconds 和 max_chars 必须大于 0")
     return cfg
-

@@ -10,7 +10,7 @@ Ubuntu Selection Translator 是一个面向 Ubuntu GNOME 的全局划词翻译�
 - 支持 Ubuntu GNOME Wayland 和 X11
 - 通过桌面通知显示结果
 - 自动复制译文
-- 支持 LibreTranslate 和 Translate Shell
+- 支持 DeepSeek、LibreTranslate 和 Translate Shell
 - 不常驻后台，不监听键盘
 
 ## 获取代码
@@ -50,20 +50,49 @@ sudo apt install python3 python3-venv python3-setuptools libnotify-bin wl-clipbo
 ~/.config/selection-translator/config.json
 ```
 
-默认使用 LibreTranslate。编辑配置文件，填写可用的服务地址和 API Key：
+默认使用 DeepSeek。编辑配置文件并填入你的 API Key：
 
 ```json
 {
-  "provider": "libretranslate",
-  "endpoint": "https://你的-libretranslate-服务地址",
-  "api_key": "你的-api-key",
+  "provider": "deepseek",
+  "endpoint": "https://api.deepseek.com",
+  "api_key": "你的-deepseek-api-key",
+  "model": "deepseek-v4-flash",
   "timeout_seconds": 12,
   "copy_translation": true,
   "max_chars": 5000
 }
 ```
 
-如果服务不要求 API Key，可将 `api_key` 留空。
+保护配置文件权限：
+
+```bash
+chmod 600 ~/.config/selection-translator/config.json
+```
+
+也可以不把 Key 写入文件，而是在运行程序的环境中设置：
+
+```bash
+export DEEPSEEK_API_KEY="你的-deepseek-api-key"
+```
+
+但 GNOME 快捷键通常不会读取终端的临时环境变量，因此桌面快捷键场景建议使用权限为 `600` 的配置文件。
+
+`deepseek-v4-flash` 速度和费用更适合划词翻译；如需更高质量，可将 `model` 改成 `deepseek-v4-pro`。
+
+如需使用 LibreTranslate，可改为：
+
+```json
+{
+  "provider": "libretranslate",
+  "endpoint": "你的 LibreTranslate 服务地址",
+  "api_key": "",
+  "model": "deepseek-v4-flash",
+  "timeout_seconds": 12,
+  "copy_translation": true,
+  "max_chars": 5000
+}
+```
 
 也可以安装 [Translate Shell](https://github.com/soimort/translate-shell)，然后将 `provider` 改为：
 
@@ -82,6 +111,8 @@ sudo apt install python3 python3-venv python3-setuptools libnotify-bin wl-clipbo
 
 ## 设置全局快捷键
 
+本工具不需要设置开机启动，也没有常驻后台进程。登录桌面后，GNOME 会保存并自动启用自定义快捷键；只有按下快捷键时程序才会启动，翻译完成后立即退出。空闲时不会占用 DeepSeek API 额度。
+
 打开 Ubuntu：
 
 **设置 → 键盘 → 查看及自定义快捷键 → 自定义快捷键 → 添加**
@@ -90,18 +121,24 @@ sudo apt install python3 python3-venv python3-setuptools libnotify-bin wl-clipbo
 
 - 名称：`划词翻译`
 - 命令：`/home/你的用户名/.local/bin/selection-translator`
-- 快捷键：例如 `Ctrl+Alt+T`
+- 快捷键：`Alt+Q`
 
 先在终端运行一次完整命令，确认路径正确。
+
+`Alt+Q` 可能已经被个别应用使用。设置成 GNOME 全局快捷键后，系统通常会优先处理它，该应用原有的 `Alt+Q` 功能可能无法继续使用。
 
 ## 使用
 
 1. 在浏览器、编辑器或其他应用中选中文字。
-2. 按下设置好的全局快捷键。
+2. 按下 `Alt+Q`。
 3. 在桌面通知中查看译文。
 4. 译文已经复制到剪贴板，可以直接粘贴。
 
-如果某些 Wayland 应用无法直接读取选区，请先按 `Ctrl+C`，再按翻译快捷键。
+如果某些 Wayland 应用无法直接读取选区，请使用：
+
+```text
+选中文字 → Ctrl+C → Alt+Q
+```
 
 常用命令：
 

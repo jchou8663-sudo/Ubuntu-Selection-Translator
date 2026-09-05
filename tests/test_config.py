@@ -8,7 +8,9 @@ from selection_translator.config import load_config
 
 class ConfigTests(unittest.TestCase):
     def test_defaults_when_missing(self):
-        self.assertEqual(load_config(Path("/definitely/missing/config.json")).provider, "libretranslate")
+        config = load_config(Path("/definitely/missing/config.json"))
+        self.assertEqual(config.provider, "deepseek")
+        self.assertEqual(config.model, "deepseek-v4-flash")
 
     def test_load_and_reject_unknown(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -22,4 +24,3 @@ class ConfigTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
