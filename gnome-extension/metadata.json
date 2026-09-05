@@ -3,5 +3,5 @@
   "name": "Selection Translator Overlay",
   "description": "Shows selectable translation text in a frosted-glass top dialog.",
   "shell-version": ["46"],
-  "version": 7
+  "version": 10
 }

@@ -86,19 +86,24 @@ export default class SelectionTranslatorExtension extends Extension {
             x_expand: true,
             y_align: Clutter.ActorAlign.START,
         });
-        const prefix = new St.Label({
+        const prefix = new St.BoxLayout({
             style_class: 'selection-translator-prefix',
-            text: '🎉:',
+            vertical: false,
             y_align: Clutter.ActorAlign.START,
         });
-
-        const scrollView = new St.ScrollView({
-            style_class: 'selection-translator-scroll',
-            overlay_scrollbars: true,
-            x_expand: true,
-            y_expand: true,
+        const successIcon = new St.Icon({
+            style_class: 'selection-translator-success-icon',
+            icon_name: 'starred-symbolic',
+            y_align: Clutter.ActorAlign.START,
         });
-        scrollView.set_policy(St.PolicyType.NEVER, St.PolicyType.AUTOMATIC);
+        const colon = new St.Label({
+            style_class: 'selection-translator-colon',
+            text: ':',
+            y_align: Clutter.ActorAlign.START,
+        });
+        prefix.add_child(successIcon);
+        prefix.add_child(colon);
+
         const result = new St.Label({
             style_class: 'selection-translator-result',
             text: translation,
@@ -110,6 +115,7 @@ export default class SelectionTranslatorExtension extends Extension {
         const resultText = result.clutter_text;
         resultText.line_wrap = true;
         resultText.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
+        resultText.single_line_mode = false;
         resultText.ellipsize = Pango.EllipsizeMode.NONE;
         resultText.selectable = true;
         resultText.editable = false;
@@ -134,8 +140,7 @@ export default class SelectionTranslatorExtension extends Extension {
         });
         content.add_child(prefix);
         content.add_child(result);
-        scrollView.add_child(content);
-        this._dialog.add_child(scrollView);
+        this._dialog.add_child(content);
         Main.layoutManager.addTopChrome(this._dialog, {
             affectsInputRegion: true,
             trackFullscreen: true,
@@ -147,8 +152,35 @@ export default class SelectionTranslatorExtension extends Extension {
         const [, naturalWidth] = this._dialog.get_preferred_width(-1);
         const width = Math.min(Math.max(420, naturalWidth), maxWidth);
         this._dialog.set_width(width);
+
+        // St.BoxLayout does not constrain a wrapping St.Label while asking for
+        // preferred height. Give both actors their final widths first so the
+        // measured height and the actual allocation use the same line breaks.
+        const contentWidth = Math.max(320, width - 42);
+        const [, prefixWidth] = prefix.get_preferred_width(-1);
+        const resultWidth = Math.max(240, contentWidth - prefixWidth - 9);
+        content.set_width(contentWidth);
+        result.set_width(resultWidth);
+        const [, resultHeight] = result.get_preferred_height(resultWidth);
+        const [, prefixHeight] = prefix.get_preferred_height(prefixWidth);
+        result.set_height(resultHeight);
+        content.set_height(Math.max(resultHeight, prefixHeight));
         const [, naturalHeight] = this._dialog.get_preferred_height(width);
-        const height = Math.min(naturalHeight, Math.round(workArea.height * 0.72));
+        const maxHeight = Math.round(workArea.height * 0.72);
+        let height = naturalHeight;
+        if (naturalHeight > maxHeight) {
+            this._dialog.remove_child(content);
+            const scrollView = new St.ScrollView({
+                style_class: 'selection-translator-scroll',
+                overlay_scrollbars: true,
+                x_expand: true,
+                y_expand: true,
+            });
+            scrollView.set_policy(St.PolicyType.NEVER, St.PolicyType.AUTOMATIC);
+            scrollView.add_child(content);
+            this._dialog.add_child(scrollView);
+            height = maxHeight;
+        }
         this._dialog.set_height(height);
         this._dialog.set_position(
             Math.round(workArea.x + (workArea.width - width) / 2),

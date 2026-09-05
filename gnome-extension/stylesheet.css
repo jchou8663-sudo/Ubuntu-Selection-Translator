@@ -17,10 +17,19 @@
 }
 
 .selection-translator-prefix {
+  spacing: 2px;
+  padding: 3px 0 2px;
+}
+
+.selection-translator-success-icon {
+  icon-size: 19px;
+  color: #d99a18;
+}
+
+.selection-translator-colon {
   color: #405b91;
   font-size: 15pt;
   font-weight: 600;
-  padding: 3px 0 2px;
 }
 
 .selection-translator-scroll {
