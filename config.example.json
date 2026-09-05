@@ -1,0 +1,9 @@
+{
+  "provider": "libretranslate",
+  "endpoint": "https://libretranslate.com",
+  "api_key": "",
+  "timeout_seconds": 12,
+  "copy_translation": true,
+  "max_chars": 5000
+}
+
