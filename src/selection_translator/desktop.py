@@ -11,6 +11,25 @@ def notify(summary: str, body: str, *, urgency: str = "normal") -> bool:
     return run(["notify-send", "--app-name=划词翻译", f"--urgency={urgency}", summary, body]).ok
 
 
+def show_translation(text: str) -> bool:
+    if not available("gdbus"):
+        return False
+    return run(
+        [
+            "gdbus",
+            "call",
+            "--session",
+            "--dest",
+            "io.github.jchou8663.SelectionTranslator",
+            "--object-path",
+            "/io/github/jchou8663/SelectionTranslator",
+            "--method",
+            "io.github.jchou8663.SelectionTranslator.Show",
+            text,
+        ]
+    ).ok
+
+
 def copy(text: str) -> tuple[bool, str]:
     session = os.environ.get("XDG_SESSION_TYPE", "").lower()
     if session == "wayland" and available("wl-copy"):
@@ -22,4 +41,3 @@ def copy(text: str) -> tuple[bool, str]:
     if available("copyq"):
         return run(["copyq", "copy", text]).ok, "CopyQ"
     return False, "无可用剪贴板工具"
-

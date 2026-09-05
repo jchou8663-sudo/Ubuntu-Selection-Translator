@@ -11,6 +11,9 @@ marker="$venv_dir/.selection-translator-managed"
 entry="$bin_dir/selection-translator"
 entry_marker="# selection-translator managed launcher"
 translator_python="${SELECTION_TRANSLATOR_PYTHON:-python3}"
+extension_uuid="selection-translator@jchou8663-sudo.github.com"
+extension_dir="$data_root/gnome-shell/extensions/$extension_uuid"
+extension_marker="$extension_dir/.selection-translator-managed"
 
 if ! command -v "$translator_python" >/dev/null 2>&1; then
   echo "错误：找不到 Python：$translator_python" >&2
@@ -74,6 +77,29 @@ if [[ ! -e "$config_dir/config.json" ]]; then
   echo "已创建配置：$config_dir/config.json"
 else
   echo "保留已有配置：$config_dir/config.json"
+fi
+
+if [[ -e "$extension_dir" && ! -f "$extension_marker" ]]; then
+  echo "错误：GNOME 扩展目录已存在且不属于本应用：$extension_dir" >&2
+  exit 1
+fi
+mkdir -p "$(dirname -- "$extension_dir")"
+temp_extension="$(dirname -- "$extension_dir")/.${extension_uuid}.new.$$"
+cleanup_extension() { rm -rf -- "$temp_extension"; }
+trap cleanup_extension EXIT
+mkdir -p "$temp_extension"
+cp -a -- "$project_dir/gnome-extension/." "$temp_extension/"
+: > "$temp_extension/.selection-translator-managed"
+if [[ -e "$extension_dir" ]]; then
+  rm -rf -- "$extension_dir"
+fi
+mv -- "$temp_extension" "$extension_dir"
+trap - EXIT
+
+if command -v gnome-extensions >/dev/null 2>&1 && gnome-extensions enable "$extension_uuid" 2>/dev/null; then
+  echo "已启用 GNOME 透明翻译浮层。"
+else
+  echo "GNOME 扩展已安装。请注销并重新登录，然后运行：gnome-extensions enable $extension_uuid"
 fi
 
 echo "安装/升级完成。先运行：$entry doctor"

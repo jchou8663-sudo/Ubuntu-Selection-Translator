@@ -8,7 +8,7 @@ from pathlib import Path
 
 from . import __version__
 from .config import config_path, load_config
-from .desktop import copy, notify
+from .desktop import copy, notify, show_translation
 from .language import translation_direction
 from .process import available
 from .providers import TranslationError, translate
@@ -53,7 +53,6 @@ def _run(text_arg: str | None, no_copy: bool) -> int:
         return 2
     selected = None if text_arg is not None else get_selection()
     text = text_arg.strip() if text_arg is not None else (selected.text if selected else "")
-    source_label = "命令行参数" if text_arg is not None else (selected.source if selected else "无")
     if not text:
         message = "未读到选区；请复制文字后重试，或运行 doctor 检查依赖。"
         print(message, file=sys.stderr)
@@ -73,7 +72,8 @@ def _run(text_arg: str | None, no_copy: bool) -> int:
         return 5
     copied, copier = (False, "已按参数禁用") if no_copy or not cfg.copy_translation else copy(result.text)
     suffix = "已复制译文" if copied else f"未复制（{copier}）"
-    notify(f"{source.upper()} → {target.upper()} · {suffix}", f"{result.text}\n\n来源：{source_label}；服务：{result.provider}")
+    if not show_translation(result.text):
+        notify(f"{source.upper()} → {target.upper()} · {suffix}", result.text)
     print(result.text)
     return 0
 

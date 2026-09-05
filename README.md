@@ -2,23 +2,23 @@
 
 Ubuntu Selection Translator 是一个面向 Ubuntu GNOME 的全局划词翻译工具。
 
-在任意应用中选中文字，按下你设置的全局快捷键，即可通过桌面通知查看译文。程序会自动判断英译汉或汉译英，并将译文复制到剪贴板，不会打开常规窗口。
+在任意应用中选中文字，按下你设置的全局快捷键，译文会以半透明浮层显示在鼠标旁边。程序会自动判断英译汉或汉译英，并将译文复制到剪贴板，不会打开常规窗口。
 
 ## 功能
 
 - 英文与中文自动互译
 - 支持 Ubuntu GNOME Wayland 和 X11
-- 通过桌面通知显示结果
+- 在划词位置旁显示简洁的半透明译文
 - 自动复制译文
 - 支持 DeepSeek、LibreTranslate 和 Translate Shell
 - 不常驻后台，不监听键盘
 
 ## 获取代码
 
-发布到 GitHub 后，可以通过以下命令获取：
+clone GitHub 仓库，获取项目代码：
 
 ```bash
-git clone https://github.com/你的用户名/ubuntu-selection-translator.git
+git clone https://github.com/jchou8663-sudo/Ubuntu-Selection-Translator.git
 cd ubuntu-selection-translator
 ```
 
@@ -41,6 +41,12 @@ sudo apt install python3 python3-venv python3-setuptools libnotify-bin wl-clipbo
 ```
 
 程序会安装到独立的用户级 Python 环境，不会修改系统 Python。重复运行安装脚本即可升级，已有配置不会被覆盖。
+
+安装脚本还会安装 GNOME 46 浮层扩展。首次安装后，如果提示扩展暂时无法启用，请注销并重新登录一次，然后运行：
+
+```bash
+gnome-extensions enable selection-translator@jchou8663-sudo.github.com
+```
 
 ## 配置翻译服务
 
@@ -131,7 +137,7 @@ export DEEPSEEK_API_KEY="你的-deepseek-api-key"
 
 1. 在浏览器、编辑器或其他应用中选中文字。
 2. 按下 `Alt+Q`。
-3. 在桌面通知中查看译文。
+3. 在鼠标旁的半透明浮层中查看译文；浮层约 4 秒后自动淡出。
 4. 译文已经复制到剪贴板，可以直接粘贴。
 
 如果某些 Wayland 应用无法直接读取选区，请使用：
@@ -197,6 +203,7 @@ bash -n scripts/install.sh scripts/uninstall.sh
 ```
 
 卸载脚本会删除程序的虚拟环境和启动入口，但会保留配置文件。GNOME 全局快捷键需要在系统设置中手动删除。
+同时会禁用并删除本工具安装的 GNOME 翻译浮层扩展。
 
 ## 许可证
 
