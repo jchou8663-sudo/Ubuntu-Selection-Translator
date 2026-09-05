@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ubuntu-selection-translator"
-version = "0.5.1"
+version = "0.5.2"
 description = "Ubuntu GNOME Wayland/X11 global selection translation MVP"
 readme = "README.md"
 requires-python = ">=3.10"

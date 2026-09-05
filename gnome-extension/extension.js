@@ -80,20 +80,17 @@ export default class SelectionTranslatorExtension extends Extension {
             mode: Shell.BlurMode.BACKGROUND,
         }));
 
-        const header = new St.BoxLayout({
-            style_class: 'selection-translator-header',
+        const content = new St.BoxLayout({
+            style_class: 'selection-translator-content',
             vertical: false,
+            x_expand: true,
+            y_align: Clutter.ActorAlign.START,
         });
-        const icon = new St.Icon({
-            style_class: 'selection-translator-icon',
-            icon_name: 'accessories-dictionary-symbolic',
+        const prefix = new St.Label({
+            style_class: 'selection-translator-prefix',
+            text: '🎉:',
+            y_align: Clutter.ActorAlign.START,
         });
-        const title = new St.Label({
-            style_class: 'selection-translator-title',
-            text: '即时翻译',
-        });
-        header.add_child(icon);
-        header.add_child(title);
 
         const scrollView = new St.ScrollView({
             style_class: 'selection-translator-scroll',
@@ -135,8 +132,9 @@ export default class SelectionTranslatorExtension extends Extension {
             }
             return Clutter.EVENT_PROPAGATE;
         });
-        scrollView.add_child(result);
-        this._dialog.add_child(header);
+        content.add_child(prefix);
+        content.add_child(result);
+        scrollView.add_child(content);
         this._dialog.add_child(scrollView);
         Main.layoutManager.addTopChrome(this._dialog, {
             affectsInputRegion: true,

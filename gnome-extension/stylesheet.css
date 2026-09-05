@@ -12,19 +12,15 @@
   box-shadow: 0 12px 36px rgba(24, 35, 58, 0.26);
 }
 
-.selection-translator-header {
-  spacing: 8px;
+.selection-translator-content {
+  spacing: 9px;
 }
 
-.selection-translator-icon {
-  icon-size: 16px;
-  color: #4f6fae;
-}
-
-.selection-translator-title {
-  color: #52627d;
-  font-size: 10.5pt;
-  font-weight: 650;
+.selection-translator-prefix {
+  color: #405b91;
+  font-size: 15pt;
+  font-weight: 600;
+  padding: 3px 0 2px;
 }
 
 .selection-translator-scroll {
