@@ -3,5 +3,5 @@
   "name": "Selection Translator Overlay",
   "description": "Shows translation text beside the pointer.",
   "shell-version": ["46"],
-  "version": 1
+  "version": 2
 }

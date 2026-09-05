@@ -1,6 +1,5 @@
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
@@ -21,7 +20,14 @@ const INTERFACE_XML = `
 export default class SelectionTranslatorExtension extends Extension {
     enable() {
         this._label = null;
-        this._hideTimeout = 0;
+        this._stageEventId = global.stage.connect('captured-event', (_actor, event) => {
+            if (this._label && event.type() === Clutter.EventType.BUTTON_PRESS) {
+                const source = event.get_source();
+                if (source !== this._label && !this._label.contains(source))
+                    this._removeLabel();
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
         this._dbus = Gio.DBusExportedObject.wrapJSObject(INTERFACE_XML, this);
         this._dbus.export(Gio.DBus.session, OBJECT_PATH);
         this._nameId = Gio.bus_own_name_on_connection(
@@ -35,6 +41,10 @@ export default class SelectionTranslatorExtension extends Extension {
 
     disable() {
         this._removeLabel();
+        if (this._stageEventId) {
+            global.stage.disconnect(this._stageEventId);
+            this._stageEventId = 0;
+        }
         if (this._nameId) {
             Gio.bus_unown_name(this._nameId);
             this._nameId = 0;
@@ -54,13 +64,15 @@ export default class SelectionTranslatorExtension extends Extension {
         this._label = new St.Label({
             style_class: 'selection-translator-overlay',
             text: translation,
-            opacity: 0,
-            reactive: false,
+            reactive: true,
+            can_focus: true,
         });
         this._label.clutter_text.line_wrap = true;
         this._label.clutter_text.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
+        this._label.clutter_text.selectable = true;
+        this._label.clutter_text.editable = false;
         Main.layoutManager.addTopChrome(this._label, {
-            affectsInputRegion: false,
+            affectsInputRegion: true,
             trackFullscreen: true,
         });
 
@@ -75,27 +87,9 @@ export default class SelectionTranslatorExtension extends Extension {
         if (y + naturalHeight > monitor.y + monitor.height - 8)
             y = Math.max(monitor.y + 8, pointerY - naturalHeight - 14);
         this._label.set_position(x, y);
-        this._label.ease({opacity: 255, duration: 120, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
-
-        this._hideTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 4000, () => {
-            if (this._label) {
-                this._label.ease({
-                    opacity: 0,
-                    duration: 220,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    onComplete: () => this._removeLabel(),
-                });
-            }
-            this._hideTimeout = 0;
-            return GLib.SOURCE_REMOVE;
-        });
     }
 
     _removeLabel() {
-        if (this._hideTimeout) {
-            GLib.source_remove(this._hideTimeout);
-            this._hideTimeout = 0;
-        }
         if (this._label) {
             this._label.destroy();
             this._label = null;

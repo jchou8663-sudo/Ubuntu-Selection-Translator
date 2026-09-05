@@ -91,6 +91,9 @@ mkdir -p "$temp_extension"
 cp -a -- "$project_dir/gnome-extension/." "$temp_extension/"
 : > "$temp_extension/.selection-translator-managed"
 if [[ -e "$extension_dir" ]]; then
+  if command -v gnome-extensions >/dev/null 2>&1; then
+    gnome-extensions disable "$extension_uuid" 2>/dev/null || true
+  fi
   rm -rf -- "$extension_dir"
 fi
 mv -- "$temp_extension" "$extension_dir"
