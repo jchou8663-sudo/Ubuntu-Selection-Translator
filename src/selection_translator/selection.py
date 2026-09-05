@@ -29,32 +29,38 @@ def _atspi_selection() -> Selection | None:
     except (ImportError, RuntimeError):
         return None
 
-    def visit(node: object, depth: int = 0) -> str:
-        if depth > 12:
-            return ""
+    def visit(node: object, depth: int = 0) -> Selection | None:
+        if node is None or depth > 12:
+            return None
         try:
             states = node.getState()  # type: ignore[attr-defined]
-            if states.contains(pyatspi.STATE_FOCUSED):
+            supports_selection = states.contains(pyatspi.STATE_FOCUSED)
+            selectable_text = getattr(pyatspi, "STATE_SELECTABLE_TEXT", None)
+            if selectable_text is not None:
+                supports_selection = supports_selection or states.contains(selectable_text)
+            if supports_selection:
                 try:
                     text = node.queryText()  # type: ignore[attr-defined]
                     if text.getNSelections() > 0:
                         start, end = text.getSelection(0)
-                        return _clean(text.getText(start, end))
-                except (NotImplementedError, LookupError, RuntimeError):
+                        selected = _clean(text.getText(start, end))
+                        if selected:
+                            return Selection(selected, "AT-SPI 聚焦选区")
+                except Exception:
                     pass
             for child in node:  # type: ignore[union-attr]
                 found = visit(child, depth + 1)
                 if found:
                     return found
-        except (LookupError, RuntimeError):
-            return ""
-        return ""
+        except Exception:
+            return None
+        return None
 
     try:
-        text = visit(pyatspi.Registry.getDesktop(0))
-    except (LookupError, RuntimeError):
+        selected = visit(pyatspi.Registry.getDesktop(0))
+    except Exception:
         return None
-    return Selection(text, "AT-SPI 聚焦选区") if text else None
+    return selected
 
 
 def get_selection() -> Selection | None:
@@ -89,4 +95,3 @@ def get_selection() -> Selection | None:
         if selected:
             return selected
     return None
-

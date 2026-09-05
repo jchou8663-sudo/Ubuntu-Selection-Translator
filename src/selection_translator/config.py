@@ -14,7 +14,7 @@ class Config:
     api_key: str = ""
     model: str = "deepseek-v4-flash"
     timeout_seconds: float = 12.0
-    copy_translation: bool = True
+    copy_translation: bool = False
     max_chars: int = 5000
 
 

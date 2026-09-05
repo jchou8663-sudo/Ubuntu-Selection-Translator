@@ -2,15 +2,17 @@
 
 Ubuntu Selection Translator 是一个面向 Ubuntu GNOME 的全局划词翻译工具。
 
-在任意应用中选中文字，按下你设置的全局快捷键，译文会直接显示在鼠标旁边。程序会自动判断英译汉或汉译英，并将译文复制到剪贴板，不会打开常规窗口。
+在任意应用中选中文字，按下 `Alt+Q`，程序会自动判断英译汉或汉译英，并在屏幕上方显示翻译结果。
 
 ## 功能
 
 - 英文与中文自动互译
 - 支持 Ubuntu GNOME Wayland 和 X11
-- 在划词位置旁仅显示译文文字，背景完全透明
-- 可以用鼠标选中译文中的任意文字
-- 自动复制译文
+- 在当前屏幕上方显示半透明毛玻璃翻译卡片
+- 长句自动换行，超长内容可在弹窗中滚动查看
+- 弹窗不会自动消失，点击框外或按 `Esc` 关闭
+- 可以用鼠标选择全部或部分译文
+- 选中后按 `Ctrl+C`，只复制需要的文字
 - 支持 DeepSeek、LibreTranslate 和 Translate Shell
 - 不常驻后台，不监听键盘
 
@@ -19,7 +21,7 @@ Ubuntu Selection Translator 是一个面向 Ubuntu GNOME 的全局划词翻译�
 clone GitHub 仓库，获取项目代码：
 
 ```bash
-git clone https://github.com/jchou8663-sudo/Ubuntu-Selection-Translator.git
+git clone https://github.com/jchou8663-sudo/Ubuntu-Selection-Translator.git ubuntu-selection-translator
 cd ubuntu-selection-translator
 ```
 
@@ -43,7 +45,7 @@ sudo apt install python3 python3-venv python3-setuptools libnotify-bin wl-clipbo
 
 程序会安装到独立的用户级 Python 环境，不会修改系统 Python。重复运行安装脚本即可升级，已有配置不会被覆盖。
 
-安装脚本还会安装 GNOME 46 浮层扩展。首次安装后，如果提示扩展暂时无法启用，请注销并重新登录一次，然后运行：
+安装脚本还会安装 GNOME Shell 46 浮层扩展。首次安装后，如果提示扩展暂时无法启用，请注销并重新登录一次，然后运行：
 
 ```bash
 gnome-extensions enable selection-translator@jchou8663-sudo.github.com
@@ -66,7 +68,6 @@ gnome-extensions enable selection-translator@jchou8663-sudo.github.com
   "api_key": "你的-deepseek-api-key",
   "model": "deepseek-v4-flash",
   "timeout_seconds": 12,
-  "copy_translation": true,
   "max_chars": 5000
 }
 ```
@@ -96,18 +97,13 @@ export DEEPSEEK_API_KEY="你的-deepseek-api-key"
   "api_key": "",
   "model": "deepseek-v4-flash",
   "timeout_seconds": 12,
-  "copy_translation": true,
   "max_chars": 5000
 }
 ```
 
-也可以安装 [Translate Shell](https://github.com/soimort/translate-shell)，然后将 `provider` 改为：
+也可以安装 [Translate Shell](https://github.com/soimort/translate-shell)，然后将配置中的 `provider` 改为 `translate-shell`。`endpoint`、`api_key` 和 `model` 在该模式下不会使用。
 
-```json
-"provider": "translate-shell"
-```
-
-测试翻译服务：
+测试 provider 是否可用：
 
 ```bash
 ~/.local/bin/selection-translator "Hello"
@@ -138,16 +134,19 @@ export DEEPSEEK_API_KEY="你的-deepseek-api-key"
 
 1. 在浏览器、编辑器或其他应用中选中文字。
 2. 按下 `Alt+Q`。
-3. 在鼠标旁查看译文；译文会一直保留，可以拖动鼠标选择其中的文字。
-4. 译文已经复制到剪贴板，可以直接粘贴。
-
-点击译文以外的任意区域后，译文会消失。
+3. 在屏幕上方的“即时翻译”毛玻璃弹窗中查看译文；长句会换行，超长内容可滚动。
+4. 如需复制，用鼠标选中所需文字后按 `Ctrl+C`。
+5. 点击弹窗外部或按 `Esc` 关闭。
 
 如果某些 Wayland 应用无法直接读取选区，请使用：
 
 ```text
 选中文字 → Ctrl+C → Alt+Q
 ```
+
+如果浮层扩展未启用，程序会回退到标题为 `Translator Result` 的系统通知，确保翻译结果不会丢失。
+
+直接运行 `selection-translator "Hello"` 也会显示相同的结果弹窗，可用于测试 provider 和弹窗。
 
 常用命令：
 
@@ -157,9 +156,6 @@ selection-translator
 
 # 翻译指定文字
 selection-translator "Hello"
-
-# 本次不复制译文
-selection-translator --no-copy "Hello"
 
 # 检查配置和依赖
 selection-translator doctor
@@ -181,8 +177,9 @@ src/selection_translator/
 - `cli.py`：命令行入口和执行流程
 - `selection.py`：读取选区
 - `providers.py`：翻译服务
-- `desktop.py`：通知和剪贴板
+- `desktop.py`：调用 GNOME 弹窗和备用系统通知
 - `config.py`：配置读取
+- `gnome-extension/`：显示可选择、点击外部关闭的翻译弹窗
 
 修改代码后运行测试：
 
@@ -205,8 +202,7 @@ bash -n scripts/install.sh scripts/uninstall.sh
 ./scripts/uninstall.sh
 ```
 
-卸载脚本会删除程序的虚拟环境和启动入口，但会保留配置文件。GNOME 全局快捷键需要在系统设置中手动删除。
-同时会禁用并删除本工具安装的 GNOME 翻译浮层扩展。
+卸载脚本会删除程序的虚拟环境、启动入口和本工具安装的 GNOME 浮层扩展，但会保留配置文件。GNOME 全局快捷键需要在系统设置中手动删除。
 
 ## 许可证
 

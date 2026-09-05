@@ -104,6 +104,7 @@ if command -v gnome-extensions >/dev/null 2>&1 && gnome-extensions enable "$exte
 else
   echo "GNOME 扩展已安装。请注销并重新登录，然后运行：gnome-extensions enable $extension_uuid"
 fi
+echo "若本次更新了浮层代码，请注销并重新登录，让 GNOME Shell 加载新版本。"
 
 echo "安装/升级完成。先运行：$entry doctor"
 echo "GNOME 自定义快捷键命令：$entry"

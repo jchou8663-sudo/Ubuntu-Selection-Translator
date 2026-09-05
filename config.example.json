@@ -4,6 +4,5 @@
   "api_key": "",
   "model": "deepseek-v4-flash",
   "timeout_seconds": 12,
-  "copy_translation": true,
   "max_chars": 5000
 }

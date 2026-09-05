@@ -8,7 +8,7 @@ from pathlib import Path
 
 from . import __version__
 from .config import config_path, load_config
-from .desktop import copy, notify, show_translation
+from .desktop import notify, show_translation
 from .language import translation_direction
 from .process import available
 from .providers import TranslationError, translate
@@ -44,7 +44,7 @@ def _doctor() -> int:
     return 0 if checks.get("config_valid") and has_reader and commands["notify-send"] else 1
 
 
-def _run(text_arg: str | None, no_copy: bool) -> int:
+def _run(text_arg: str | None) -> int:
     try:
         cfg = load_config()
     except (OSError, ValueError, json.JSONDecodeError) as exc:
@@ -70,10 +70,8 @@ def _run(text_arg: str | None, no_copy: bool) -> int:
         print(str(exc), file=sys.stderr)
         notify("划词翻译失败", str(exc), urgency="critical")
         return 5
-    copied, copier = (False, "已按参数禁用") if no_copy or not cfg.copy_translation else copy(result.text)
-    suffix = "已复制译文" if copied else f"未复制（{copier}）"
     if not show_translation(result.text):
-        notify(f"{source.upper()} → {target.upper()} · {suffix}", result.text)
+        notify("Translator Result", result.text)
     print(result.text)
     return 0
 
@@ -81,7 +79,6 @@ def _run(text_arg: str | None, no_copy: bool) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Ubuntu 全局划词翻译")
     parser.add_argument("text", nargs="?", help="直接翻译文本；doctor/config-path 为诊断命令；省略时读取选区")
-    parser.add_argument("--no-copy", action="store_true", help="不把译文写入普通剪贴板")
     parser.add_argument("--version", action="version", version=__version__)
     return parser
 
@@ -93,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.text == "config-path":
         print(config_path())
         return 0
-    return _run(args.text, args.no_copy)
+    return _run(args.text)
 
 
 if __name__ == "__main__":

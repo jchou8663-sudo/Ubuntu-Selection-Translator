@@ -1,12 +1,29 @@
 import os
+import sys
+import types
 import unittest
 from unittest.mock import patch
 
 from selection_translator.process import CommandResult
-from selection_translator.selection import get_selection
+from selection_translator.selection import Selection, _atspi_selection, get_selection
 
 
 class SelectionTests(unittest.TestCase):
+    def test_atspi_ignores_stale_none_nodes(self):
+        class Root:
+            def getState(self):
+                return types.SimpleNamespace(contains=lambda _state: False)
+
+            def __iter__(self):
+                return iter([None])
+
+        fake_pyatspi = types.SimpleNamespace(
+            STATE_FOCUSED=1,
+            Registry=types.SimpleNamespace(getDesktop=lambda _index: Root()),
+        )
+        with patch.dict(sys.modules, {"pyatspi": fake_pyatspi}):
+            self.assertIsNone(_atspi_selection())
+
     @patch.dict(os.environ, {"XDG_SESSION_TYPE": "wayland", "WAYLAND_DISPLAY": "wayland-0"}, clear=True)
     @patch("selection_translator.selection._atspi_selection", return_value=None)
     @patch("selection_translator.selection.available", side_effect=lambda name: name in {"wl-paste", "copyq"})
@@ -28,7 +45,6 @@ class SelectionTests(unittest.TestCase):
         result = get_selection()
         self.assertEqual(result.source, "普通剪贴板（回退）")
         self.assertEqual(result.text, "copied text")
-
 
 if __name__ == "__main__":
     unittest.main()

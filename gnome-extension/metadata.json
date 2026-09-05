@@ -1,7 +1,7 @@
 {
   "uuid": "selection-translator@jchou8663-sudo.github.com",
   "name": "Selection Translator Overlay",
-  "description": "Shows translation text beside the pointer.",
+  "description": "Shows selectable translation text in a frosted-glass top dialog.",
   "shell-version": ["46"],
-  "version": 2
+  "version": 6
 }
